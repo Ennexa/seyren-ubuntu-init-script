@@ -1,0 +1,4 @@
+SEYREN_LOG_PATH=/var/log/seyren/
+GRAPHITE_URL="http://my.graphitehost.com/"
+SMTP_FROM=me@graphitehost.com
+SEYREN_URL="http://$HOSTNAME:8080/seyren"

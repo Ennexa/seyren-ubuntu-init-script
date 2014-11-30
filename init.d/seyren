@@ -1,0 +1,77 @@
+#!/bin/bash
+# Seyren daemon
+# chkconfig: 345 20 80
+# description: Seyren Daemon
+# processname: seyren
+
+DAEMON_PATH="/usr/share/seyren"
+
+DAEMON="/usr/bin/java -jar $DAEMON_PATH/seyren-1.2.0.jar"
+DAEMONOPTS=""
+DAEMONUSER="seyren"
+
+NAME=seyren
+DESC="Seyren Daemon"
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+
+HOSTNAME=`hostname`
+
+export SEYREN_LOG_PATH=/var/log/seyren/
+
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+case "$1" in
+start)
+	printf "%-50s" "Starting $NAME..."
+    if [ ! -f $PIDFILE ]; then
+        start-stop-daemon  --start \
+                --chuid $DAEMONUSER    \
+                --chdir  $DAEMON_PATH \
+                --background \
+                --make-pidfile \
+                --pidfile $PIDFILE \
+                --exec /bin/bash -- -c "$DAEMON $DAEMONOPTS"
+        printf "\n"
+    else
+        printf "%s\n" "pidfile $PIDFILE already exists\n"
+    fi
+;;
+status)
+        printf "%-50s" "Checking $NAME..."
+        if [ -f $PIDFILE ]; then
+            PID=`cat $PIDFILE`
+            if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+                printf "%s\n" "Process dead but pidfile exists"
+            else
+                echo "Running"
+            fi
+        else
+            printf "%s\n" "Service not running"
+        fi
+;;
+stop)
+    printf "%-50s" "Stopping $NAME..."
+    if [ -f $PIDFILE ]; then
+        start-stop-daemon  --stop \
+                --chuid $DAEMONUSER    \
+                --chdir  $DAEMON_PATH \
+                --pidfile $PIDFILE
+        rm -f $PIDFILE
+        printf "\n"
+    else
+        printf "%s\n" "pidfile not found"
+    fi
+    
+;;
+
+restart)
+  	$0 stop
+  	$0 start
+;;
+
+*)
+        echo "Usage: $0 {status|start|stop|restart}"
+        exit 1
+esac
